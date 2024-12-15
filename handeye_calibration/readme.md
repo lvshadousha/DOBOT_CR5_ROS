@@ -30,4 +30,3 @@
    ```bash
    roslaunch /home/lvdousha/catkin_ws/src/easy_handeye/easy_handeye/launch/publish.launch
    ```
-```
