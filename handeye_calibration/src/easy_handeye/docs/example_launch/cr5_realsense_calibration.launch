@@ -1,0 +1,48 @@
+<launch>
+    <arg name="namespace_prefix" default="cr5_realsense_handeyecalibration" />
+
+    <arg name="robot_ip" doc="The IP address of the UR5 robot" default="192.168.5.1" />
+
+    <arg name="marker_size" doc="Size of the ArUco marker used, in meters" default="0.120" />
+    <arg name="marker_id" doc="The ID of the ArUco marker used" default="100" />
+
+    <!-- start the realsense -->
+    <include file="$(find realsense2_camera)/launch/rs_rgbd.launch" />
+
+    <!-- start the robot -->
+    <include file="$(find dobot_bringup)/launch/bringup.launch">
+        <arg name="robot_ip" value="$(arg robot_ip)" />
+    </include>
+    <include file="$(find cr5_moveit)/launch/cr5_moveit.launch"/>
+
+    <!-- start ArUco -->
+    <node name="aruco_tracker" pkg="aruco_ros" type="single">
+        <remap from="/camera_info" to="/camera/color/camera_info" />
+        <remap from="/image" to="/camera/color/image_raw" />
+        <param name="image_is_rectified" value="true" />
+        <param name="marker_size"        value="$(arg marker_size)"/>
+        <param name="marker_id"          value="$(arg marker_id)"/>
+        <param name="reference_frame"    value="camera_color_frame"/>
+        <param name="camera_frame"       value="camera_color_frame"/>
+        <param name="marker_frame"       value="camera_marker" />
+    </node>
+
+
+    <!-- start easy_handeye -->
+    <include file="$(find easy_handeye)/launch/calibrate.launch" >
+        <arg name="namespace_prefix" value="$(arg namespace_prefix)" />
+        <arg name="eye_on_hand" value="true" />
+
+        <arg name="tracking_base_frame" value="camera_color_frame" />
+        <arg name="tracking_marker_frame" value="camera_marker" />
+        <arg name="robot_base_frame" value="base_link" />
+        <arg name="robot_effector_frame" value="Link6" />
+
+        <arg name="freehand_robot_movement" value="true" />
+        <arg name="robot_velocity_scaling" value="0.5" />
+        <arg name="robot_acceleration_scaling" value="0.1" />
+        <arg name="translation_delta_meters" default="0.0005"  />
+        <arg name="rotation_delta_degrees" default="25"  />
+    </include>
+
+</launch>
